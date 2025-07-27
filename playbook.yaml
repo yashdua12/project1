@@ -1,0 +1,89 @@
+---
+- hosts: localhost
+  become: yes
+  tasks:
+    - name: Install packages
+      apt:
+        name:
+          - apache2
+          - unzip
+          - zip
+          - wget
+          - git
+        state: present
+        update_cache: yes
+
+    - name: Create a user
+      user:
+        name: yash
+
+    - name: Create a group
+      group:
+        name: devgrp
+
+    - name: Adding user to group
+      user:
+        name: yash
+        groups: devgrp
+        append: yes
+
+    - name: Show system memory
+      command: free -m
+      register: memory_output
+
+    - debug:
+        msg: "{{ memory_output.stdout_lines }}"
+
+    - name: Disk usage
+      command: df -h
+      register: disk_output
+
+    - debug:
+        msg: "{{ disk_output.stdout_lines }}"
+
+    - name: Show current date
+      command: date
+      register: date_output
+
+    - debug:
+        msg: "{{ date_output.stdout }}"
+
+    - name: Show current user
+      command: whoami
+      register: user_output
+
+    - debug:
+        msg: "{{ user_output.stdout }}"
+
+    - name: Show OS version
+      command: cat /etc/os-release
+      register: os_output
+
+    - debug:
+        msg: "{{ os_output.stdout_lines }}"
+
+    - name: Checking status of apache2
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+
+    - name: Getting landing page URL
+      get_url:
+        url: "https://raw.githubusercontent.com/trannguyenhan/solid-landing-page/main/solid.zip"
+        dest: "/tmp/solid.zip"
+
+    - name: Create destination directory for landing page
+      file:
+        path: "/tmp/solid"
+        state: directory
+        mode: '0755'
+
+    - name: Unzipping landing page
+      unarchive:
+        src: "/tmp/solid.zip"
+        dest: "/tmp/solid"
+        remote_src: yes
+
+
+   
